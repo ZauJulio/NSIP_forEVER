@@ -15,9 +15,8 @@ foo@bar$ ~: ./build.sh
 
 ## Test checksum
 
-[test_checksum](src/client.c)
+[Test: checksum](src/client.c)
 
-<footer align="center">
-	<p>Felipe David 🐶</p>
-	<p>Zaú Júlio 🦄</p>
-</footer>
+<div align="center">
+	<p># Felipe David 🐶 - Zaú Júlio 🦄 #</p>
+</div>
