@@ -4,10 +4,8 @@
 typedef unsigned char u8;
 typedef unsigned short u16;
 
-#define NSIP_REQ 1
-#define NSIP_REP 0
-
-#define EVER ;;
+#define NSIP_REQ 0
+#define NSIP_REP 1
 
 typedef struct {
     u8 id;
@@ -17,8 +15,8 @@ typedef struct {
     u8 result[48];
 } NSIP_Packet;
 
-typedef enum {
-    MACADDR = 1, // Lembrar de começar do zero.
+enum {
+    MACADDR,
     RXPACKS,
     TXPACKS,
     RXBYTES,
@@ -27,6 +25,6 @@ typedef enum {
     UDPPORT,
     TCPLIST,
     UDPLIST,
-} Query;
+};
 
 #endif

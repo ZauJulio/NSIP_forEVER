@@ -8,12 +8,13 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+#include <assert.h>
 
 #include "utils.h"
 
 #define PORT 2102
 
-u16 processar_comando(const char *command) {
+u16 get_command(const char *command) {
     u16 query = 0;
     if (!strcmp(command, "MACADDR"))      query = MACADDR;
     else if (!strcmp(command, "RXPACKS")) query = RXPACKS;
@@ -51,7 +52,20 @@ NSIP_Packet assemble_packet(int query) {
     return new_packet;
 }
 
+void test_checksum() {
+    NSIP_Packet packet = assemble_packet(2);
+
+    assert(packet.type == NSIP_REQ);
+    assert(packet.checksum == checksum(packet));
+
+    packet.query <<= 1;
+    assert(packet.checksum != checksum(packet));
+}
+
 int main() {
+    // Tests
+    test_checksum();
+
     char command[64];
     int len, fd = socket(AF_INET, SOCK_DGRAM, 0);
     struct sockaddr_in sv_addr, cl_addr;
@@ -68,8 +82,8 @@ int main() {
         fgets(command, sizeof(command), stdin);
         command[strlen(command) - 1] = 0;
 
-        u16 query = processar_comando(command);
-        if (query == -1) continue;
+        u16 query = get_command(command);
+        if (query == (u16)-1) continue;
 
         NSIP_Packet packet = assemble_packet(query);
 

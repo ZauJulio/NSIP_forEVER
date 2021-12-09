@@ -2,6 +2,9 @@
 #define UTILS_H
 #include "nsip.h"
 
-int checksum(u8 *buf, int len);
+#define EVER ;;
+
+u16 checksum(NSIP_Packet packet);
 void log_packet(NSIP_Packet packet);
+void help();
 #endif
