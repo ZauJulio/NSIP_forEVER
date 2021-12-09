@@ -14,8 +14,10 @@
 
 #define PORT 2102
 
-u16 get_command(const char *command) {
-    u16 query = 0;
+// Translates string command to it's integer representation
+// Ex: get_query("TXPACKS") -> u16(2)
+u16 get_query(const char *command) {
+    u16 query;
     if (!strcmp(command, "MACADDR"))      query = MACADDR;
     else if (!strcmp(command, "RXPACKS")) query = RXPACKS;
     else if (!strcmp(command, "TXPACKS")) query = TXPACKS;
@@ -25,19 +27,13 @@ u16 get_command(const char *command) {
     else if (!strcmp(command, "UDPPORT")) query = UDPPORT;
     else if (!strcmp(command, "TCPLIST")) query = TCPLIST;
     else if (!strcmp(command, "UDPLIST")) query = UDPLIST;
-    else if (!strcmp(command, "HELP")) {
-        help();
-        query = -1;
-    } else {
-        printf("[!] ERROR: Command not found.\n");
-        printf("Try 'HELP' for more information.\n");
-        query = -1;
-    }
+    else if (!strcmp(command, "HELP")) query = HELP;
+    else query = ERROR;
     return query;
 }
 
 
-NSIP_Packet assemble_packet(int query) {
+NSIP_Packet assemble_packet(u16 query) {
     NSIP_Packet new_packet;
 
     memset(&new_packet, 0, sizeof(new_packet));
@@ -52,21 +48,28 @@ NSIP_Packet assemble_packet(int query) {
     return new_packet;
 }
 
-void test_checksum() {
-    NSIP_Packet packet = assemble_packet(2);
+char user_input[64];
+const char *get_user_input() {
+    printf("> ");
+    fgets(user_input, sizeof(user_input), stdin);
+    user_input[strlen(user_input) - 1] = 0;
+    return user_input;
+}
+
+void checksum_test() {
+    NSIP_Packet packet = assemble_packet(MACADDR);
 
     assert(packet.type == NSIP_REQ);
     assert(packet.checksum == checksum(packet));
 
-    packet.query <<= 1;
+    packet.query = (u16)-1;
     assert(packet.checksum != checksum(packet));
 }
 
 int main() {
     // Tests
-    test_checksum();
+    checksum_test();
 
-    char command[64];
     int len, fd = socket(AF_INET, SOCK_DGRAM, 0);
     struct sockaddr_in sv_addr, cl_addr;
     NSIP_Packet received_packet;
@@ -78,12 +81,17 @@ int main() {
     sv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     for (EVER) {
-        printf("> ");
-        fgets(command, sizeof(command), stdin);
-        command[strlen(command) - 1] = 0;
+        const char *command = get_user_input();
 
-        u16 query = get_command(command);
-        if (query == (u16)-1) continue;
+        u16 query = get_query(command);
+        if (query == HELP) {
+            help();
+            continue;
+        } else if (query == ERROR) {
+            printf("[!] ERROR: Command not found.\n");
+            printf("Try 'HELP' for more information.\n");
+            continue;
+        }
 
         NSIP_Packet packet = assemble_packet(query);
 
@@ -104,7 +112,7 @@ int main() {
         if (checksum(received_packet) == received_packet.checksum) {
             printf("%s\n", received_packet.result);
         } else {
-            printf("[!] Erro CHECKSUM!");
+            printf("[!] ERROR: Checksum dosen't match.");
             log_packet(received_packet);
         }
     }
