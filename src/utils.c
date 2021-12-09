@@ -16,7 +16,7 @@ u16 checksum(NSIP_Packet pack) {
 }
 
 void help() {
-	printf("Try 'HELP' for more information.\n\n");
+    printf("Try 'HELP' for more information.\n\n");
     printf("MACADDR – MAC address of the network card\n");
     printf("RXPACKS – Number of packages received\n");
     printf("TXPACKS – Number of packages sent\n");
